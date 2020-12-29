@@ -28,10 +28,15 @@ import androidx.databinding.DataBindingUtil
 import com.example.android.dessertclicker.databinding.ActivityMainBinding
 import timber.log.Timber
 
+const val KEY_REVENUE = "revenue_key"
+const val KEY_DESSERT_SOLD = "dessert_sold_key"
+const val KEY_TIMER_SECONDS = "timer_seconds_key"
+
 class MainActivity : AppCompatActivity() {
 
     private var revenue = 0
     private var dessertsSold = 0
+    private lateinit var dessertTimer: DessertTimer
 
     // Contains all the views
     private lateinit var binding: ActivityMainBinding
@@ -75,13 +80,21 @@ class MainActivity : AppCompatActivity() {
             onDessertClicked()
         }
 
+        dessertTimer = DessertTimer(this.lifecycle)
+
+        if (savedInstanceState != null) {
+            revenue = savedInstanceState.getInt(KEY_REVENUE, 0)
+            dessertsSold = savedInstanceState.getInt(KEY_DESSERT_SOLD, 0)
+        }
+
         // Set the TextViews to the right values
         binding.revenue = revenue
         binding.amountSold = dessertsSold
 
         // Make sure the correct dessert is showing
-        binding.dessertButton.setImageResource(currentDessert.imageId)
+        showCurrentDessert()
     }
+
 
     override fun onStart() {
         super.onStart()
@@ -120,11 +133,31 @@ class MainActivity : AppCompatActivity() {
         Timber.i("onDetachedFromWindow")
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Timber.i("onSaveInstanceState")
+
+        outState.putInt(KEY_REVENUE, revenue)
+        outState.putInt(KEY_DESSERT_SOLD, dessertsSold)
+        outState.putInt(KEY_TIMER_SECONDS, dessertTimer.secondsCount)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        Timber.i("onRestoreInstanceState")
+
+        dessertTimer.secondsCount = savedInstanceState.getInt(KEY_TIMER_SECONDS, 0)
+    }
 
 
     /**
      * Updates the score when the dessert is clicked. Possibly shows a new dessert.
      */
+
+    private fun bind(){
+
+    }
+
     private fun onDessertClicked() {
 
         // Update the score
@@ -154,11 +187,10 @@ class MainActivity : AppCompatActivity() {
             else break
         }
 
-        // If the new dessert is actually different than the current dessert, update the image
-        if (newDessert != currentDessert) {
-            currentDessert = newDessert
-            binding.dessertButton.setImageResource(newDessert.imageId)
-        }
+
+        currentDessert = newDessert
+        binding.dessertButton.setImageResource(newDessert.imageId)
+
     }
 
     /**
